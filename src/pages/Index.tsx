@@ -3,24 +3,18 @@ import { ArrowRight, ShoppingBag, CreditCard, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Layout } from '@/components/layout/Layout';
 import heroImage from '@/assets/hero-merchandise.jpg';
-
 const Index = () => {
-  return (
-    <Layout>
+  return <Layout>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Company merchandise"
-            className="h-full w-full object-cover"
-          />
+          <img src={heroImage} alt="Company merchandise" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
         </div>
         <div className="container relative py-24 md:py-32">
           <div className="max-w-2xl space-y-6">
             <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-              Company Store
+              Hitachi Store
             </h1>
             <p className="text-lg text-muted-foreground md:text-xl">
               Show your company pride with our exclusive collection of branded merchandise. 
@@ -89,8 +83,6 @@ const Index = () => {
           </Link>
         </div>
       </section>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Index;

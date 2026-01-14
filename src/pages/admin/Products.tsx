@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,10 @@ export default function AdminProducts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(initialFormState);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -58,14 +62,43 @@ export default function AdminProducts() {
     },
   });
 
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = fileName;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (product: ProductForm) => {
+      setUploading(true);
+      
+      let imageUrl = product.image_url;
+      
+      // Upload new image if one was selected
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile) || '';
+      }
+
       const productData = {
         name: product.name,
         description: product.description || null,
         category: product.category,
         price: parseFloat(product.price),
-        image_url: product.image_url || null,
+        image_url: imageUrl || null,
         available_colors: product.available_colors ? product.available_colors.split(',').map(c => c.trim()) : null,
         sizes: product.sizes ? product.sizes.split(',').map(s => s.trim()) : null,
         stock: parseInt(product.stock) || 0,
@@ -92,8 +125,12 @@ export default function AdminProducts() {
       setDialogOpen(false);
       setForm(initialFormState);
       setEditingId(null);
+      setImageFile(null);
+      setImagePreview(null);
+      setUploading(false);
     },
     onError: (error: any) => {
+      setUploading(false);
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     },
   });
@@ -126,7 +163,30 @@ export default function AdminProducts() {
       stock: String(product.stock),
       is_active: product.is_active,
     });
+    setImageFile(null);
+    setImagePreview(product.image_url || null);
     setDialogOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setForm({ ...form, image_url: '' });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -148,6 +208,8 @@ export default function AdminProducts() {
             if (!open) {
               setForm(initialFormState);
               setEditingId(null);
+              setImageFile(null);
+              setImagePreview(null);
             }
           }}>
             <DialogTrigger asChild>
@@ -217,13 +279,45 @@ export default function AdminProducts() {
                 </div>
 
                 <div>
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input
-                    id="image_url"
-                    value={form.image_url}
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="https://..."
-                  />
+                  <Label>Product Image</Label>
+                  <div className="mt-2 space-y-3">
+                    {imagePreview && (
+                      <div className="relative inline-block">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-32 w-32 rounded-lg object-cover border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -right-2 -top-2 h-6 w-6"
+                          onClick={clearImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -255,8 +349,8 @@ export default function AdminProducts() {
                   <Label htmlFor="is_active">Active (visible to customers)</Label>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? 'Saving...' : (editingId ? 'Update Product' : 'Create Product')}
+                <Button type="submit" className="w-full" disabled={saveMutation.isPending || uploading}>
+                  {uploading ? 'Uploading...' : saveMutation.isPending ? 'Saving...' : (editingId ? 'Update Product' : 'Create Product')}
                 </Button>
               </form>
             </DialogContent>

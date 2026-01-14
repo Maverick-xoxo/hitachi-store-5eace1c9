@@ -54,20 +54,20 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-popover">
-                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                  <DropdownMenuItem onSelect={() => navigate('/orders')}>
                     My Orders
                   </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <DropdownMenuItem onSelect={() => navigate('/admin')}>
                         <Settings className="mr-2 h-4 w-4" />
                         Admin Dashboard
                       </DropdownMenuItem>
                     </>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
+                  <DropdownMenuItem onSelect={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>

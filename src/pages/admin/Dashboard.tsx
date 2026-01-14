@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Package, ShoppingBag, DollarSign, Users } from 'lucide-react';
+import { Package, ShoppingBag, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,10 +67,10 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">LKR</span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats?.totalRevenue?.toFixed(2) ?? '0.00'}</div>
+              <div className="text-2xl font-bold">Rs. {stats?.totalRevenue?.toFixed(2) ?? '0.00'}</div>
             </CardContent>
           </Card>
         </div>

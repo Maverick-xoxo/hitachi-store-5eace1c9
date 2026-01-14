@@ -134,13 +134,13 @@ export default function Orders() {
                             {item.size && ` - ${item.size}`}
                           </span>
                           <span className="font-medium">
-                            ${(Number(item.unit_price) * item.quantity).toFixed(2)}
+                            Rs. {(Number(item.unit_price) * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       ))}
                       <div className="border-t pt-2 flex justify-between font-bold">
                         <span>Total</span>
-                        <span>${Number(order.total_amount).toFixed(2)}</span>
+                        <span>Rs. {Number(order.total_amount).toFixed(2)}</span>
                       </div>
 
                       {order.admin_notes && (

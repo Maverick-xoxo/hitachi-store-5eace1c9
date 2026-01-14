@@ -84,7 +84,7 @@ export function ProductCard({
         {description && (
           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{description}</p>
         )}
-        <p className="text-xl font-bold text-foreground mt-2">${price.toFixed(2)}</p>
+        <p className="text-xl font-bold text-foreground mt-2">Rs. {price.toFixed(2)}</p>
         
         <div className="mt-3 space-y-2">
           {availableColors && availableColors.length > 0 && (

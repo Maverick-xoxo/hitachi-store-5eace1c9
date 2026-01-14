@@ -176,7 +176,7 @@ export default function Cart() {
                       {item.color && item.size && <span> • </span>}
                       {item.size && <span>Size: {item.size}</span>}
                     </div>
-                    <p className="font-medium text-foreground">${item.unitPrice.toFixed(2)}</p>
+                    <p className="font-medium text-foreground">Rs. {item.unitPrice.toFixed(2)}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -218,12 +218,12 @@ export default function Cart() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${getTotalAmount().toFixed(2)}</span>
+                  <span className="font-medium">Rs. {getTotalAmount().toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${getTotalAmount().toFixed(2)}</span>
+                  <span>Rs. {getTotalAmount().toFixed(2)}</span>
                 </div>
 
                 <div className="pt-4">

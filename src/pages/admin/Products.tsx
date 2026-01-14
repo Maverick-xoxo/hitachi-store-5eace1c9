@@ -393,7 +393,7 @@ export default function AdminProducts() {
                         </div>
                       </TableCell>
                       <TableCell>{product.category}</TableCell>
-                      <TableCell>${Number(product.price).toFixed(2)}</TableCell>
+                      <TableCell>Rs. {Number(product.price).toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>
                         <Badge variant={product.is_active ? 'default' : 'secondary'}>

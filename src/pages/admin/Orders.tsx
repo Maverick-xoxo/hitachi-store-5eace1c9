@@ -139,7 +139,7 @@ export default function AdminOrders() {
                       <TableCell>
                         {format(new Date(order.created_at), 'PP')}
                       </TableCell>
-                      <TableCell>${Number(order.total_amount).toFixed(2)}</TableCell>
+                      <TableCell>Rs. {Number(order.total_amount).toFixed(2)}</TableCell>
                       <TableCell>
                         <Select
                           value={order.status}
@@ -227,12 +227,12 @@ export default function AdminOrders() {
                           {item.color && ` (${item.color})`}
                           {item.size && ` - ${item.size}`}
                         </span>
-                        <span>${(Number(item.unit_price) * item.quantity).toFixed(2)}</span>
+                        <span>Rs. {(Number(item.unit_price) * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                     <div className="border-t pt-2 flex justify-between font-bold">
                       <span>Total</span>
-                      <span>${Number(selectedOrder.total_amount).toFixed(2)}</span>
+                      <span>Rs. {Number(selectedOrder.total_amount).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

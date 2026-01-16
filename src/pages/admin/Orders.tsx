@@ -40,17 +40,31 @@ export default function AdminOrders() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch orders with order_items
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
           *,
-          order_items(*),
-          profiles!orders_user_id_fkey(full_name)
+          order_items(*)
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (ordersError) throw ordersError;
+      
+      // Fetch all profiles for these orders
+      const userIds = [...new Set(ordersData?.map(o => o.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', userIds);
+      
+      // Map profiles to orders
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      
+      return ordersData?.map(order => ({
+        ...order,
+        profiles: profilesMap.get(order.user_id) || null
+      })) || [];
     },
   });
 

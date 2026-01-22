@@ -13,8 +13,7 @@ export function Header() {
   } = useAuth();
   const navigate = useNavigate();
   const totalItems = useCartStore(state => state.getTotalItems());
-  const handleSignOut = (e: Event) => {
-    e.preventDefault();
+  const handleSignOut = () => {
     signOut().then(() => {
       navigate('/');
     });
@@ -58,7 +57,10 @@ export function Header() {
                       </DropdownMenuItem>
                     </>}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={handleSignOut}>
+                  <DropdownMenuItem onSelect={(e) => {
+                    e.preventDefault();
+                    handleSignOut();
+                  }}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>

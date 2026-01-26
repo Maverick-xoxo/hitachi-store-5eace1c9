@@ -13,10 +13,9 @@ export function Header() {
   } = useAuth();
   const navigate = useNavigate();
   const totalItems = useCartStore(state => state.getTotalItems());
-  const handleSignOut = () => {
-    signOut().then(() => {
-      navigate('/');
-    });
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
   return <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -57,10 +56,7 @@ export function Header() {
                       </DropdownMenuItem>
                     </>}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={(e) => {
-                    e.preventDefault();
-                    handleSignOut();
-                  }}>
+                  <DropdownMenuItem onSelect={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>

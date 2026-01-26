@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, startOfMonth, isSameMonth } from 'date-fns';
 import { Upload, Package, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,28 @@ export default function Orders() {
     uploadReceiptMutation.mutate({ orderId, file });
   };
 
+  // Group orders by month
+  const ordersByMonth = useMemo(() => {
+    if (!orders) return [];
+    
+    const groups = new Map<string, typeof orders>();
+    
+    orders.forEach(order => {
+      const monthKey = format(startOfMonth(new Date(order.created_at)), 'MMMM yyyy');
+      if (!groups.has(monthKey)) {
+        groups.set(monthKey, []);
+      }
+      groups.get(monthKey)!.push(order);
+    });
+    
+    // Convert to array and sort by date descending
+    return Array.from(groups.entries()).sort((a, b) => {
+      const dateA = new Date(a[1][0].created_at);
+      const dateB = new Date(b[1][0].created_at);
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [orders]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -100,98 +123,105 @@ export default function Orders() {
       <div className="container py-8">
         <h1 className="text-3xl font-bold text-foreground mb-8">My Orders</h1>
 
-        {orders && orders.length > 0 ? (
+        {ordersByMonth && ordersByMonth.length > 0 ? (
           <div className="space-y-4">
-            {orders.map((order) => {
-              const status = statusConfig[order.status as keyof typeof statusConfig];
-              const StatusIcon = status.icon;
-              
-              return (
-                <Card key={order.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          Order #{order.id.slice(0, 8)}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(order.created_at), 'PPP')}
-                        </p>
-                      </div>
-                      <Badge variant={status.variant} className="w-fit">
-                        <StatusIcon className="mr-1 h-3 w-3" />
-                        {status.label}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {order.order_items?.map((item: any) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span>
-                            {item.product_name} x{item.quantity}
-                            {item.color && ` (${item.color})`}
-                            {item.size && ` - ${item.size}`}
-                          </span>
-                          <span className="font-medium">
-                            Rs. {(Number(item.unit_price) * item.quantity).toFixed(2)}
-                          </span>
+            {ordersByMonth.map(([monthKey, monthOrders]) => (
+              <div key={monthKey} className="space-y-4">
+                <h2 className="text-xl font-semibold text-foreground border-b pb-2">
+                  {monthKey}
+                </h2>
+                {monthOrders.map((order) => {
+                  const status = statusConfig[order.status as keyof typeof statusConfig];
+                  const StatusIcon = status.icon;
+                  
+                  return (
+                    <Card key={order.id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <CardTitle className="text-lg">
+                              Order #{order.id.slice(0, 8)}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(order.created_at), 'PPP')}
+                            </p>
+                          </div>
+                          <Badge variant={status.variant} className="w-fit">
+                            <StatusIcon className="mr-1 h-3 w-3" />
+                            {status.label}
+                          </Badge>
                         </div>
-                      ))}
-                      <div className="border-t pt-2 flex justify-between font-bold">
-                        <span>Total</span>
-                        <span>Rs. {Number(order.total_amount).toFixed(2)}</span>
-                      </div>
-
-                      {order.admin_notes && (
-                        <div className="mt-2 p-2 bg-muted rounded text-sm">
-                          <strong>Note:</strong> {order.admin_notes}
-                        </div>
-                      )}
-
-                      {order.status === 'pending' && (
-                        <Dialog open={uploadingOrderId === order.id} onOpenChange={(open) => setUploadingOrderId(open ? order.id : null)}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="mt-2">
-                              <Upload className="mr-2 h-4 w-4" />
-                              Upload Payment Receipt
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="bg-background">
-                            <DialogHeader>
-                              <DialogTitle>Upload Payment Receipt</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <p className="text-sm text-muted-foreground">
-                                Please upload a photo or PDF of your payment receipt.
-                              </p>
-                              <Input
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(e) => {
-                                  if (e.target.files?.[0]) {
-                                    handleFileUpload(order.id, e.target.files[0]);
-                                  }
-                                }}
-                              />
-                              {uploadReceiptMutation.isPending && (
-                                <p className="text-sm text-muted-foreground">Uploading...</p>
-                              )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {order.order_items?.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span>
+                                {item.product_name} x{item.quantity}
+                                {item.color && ` (${item.color})`}
+                                {item.size && ` - ${item.size}`}
+                              </span>
+                              <span className="font-medium">
+                                Rs. {(Number(item.unit_price) * item.quantity).toFixed(2)}
+                              </span>
                             </div>
-                          </DialogContent>
-                        </Dialog>
-                      )}
+                          ))}
+                          <div className="border-t pt-2 flex justify-between font-bold">
+                            <span>Total</span>
+                            <span>Rs. {Number(order.total_amount).toFixed(2)}</span>
+                          </div>
 
-                      {order.receipt_url && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          ✓ Receipt uploaded
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                          {order.admin_notes && (
+                            <div className="mt-2 p-2 bg-muted rounded text-sm">
+                              <strong>Note:</strong> {order.admin_notes}
+                            </div>
+                          )}
+
+                          {order.status === 'pending' && (
+                            <Dialog open={uploadingOrderId === order.id} onOpenChange={(open) => setUploadingOrderId(open ? order.id : null)}>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="mt-2">
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  Upload Payment Receipt
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="bg-background">
+                                <DialogHeader>
+                                  <DialogTitle>Upload Payment Receipt</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <p className="text-sm text-muted-foreground">
+                                    Please upload a photo or PDF of your payment receipt.
+                                  </p>
+                                  <Input
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) {
+                                        handleFileUpload(order.id, e.target.files[0]);
+                                      }
+                                    }}
+                                  />
+                                  {uploadReceiptMutation.isPending && (
+                                    <p className="text-sm text-muted-foreground">Uploading...</p>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+
+                          {order.receipt_url && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              ✓ Receipt uploaded
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-16">

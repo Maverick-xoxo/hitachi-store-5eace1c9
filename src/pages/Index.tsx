@@ -13,7 +13,7 @@ const Index = () => {
         </div>
         <div className="container relative py-24 md:py-32">
           <div className="max-w-2xl space-y-6">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">Hitachi-DPS Store</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">Hitachi Digital Payment Solutions' Store</h1>
             <p className="text-lg text-muted-foreground md:text-xl">
               Show your company pride with our exclusive collection of branded merchandise. 
               From stylish apparel to everyday essentials, find the perfect items to represent your team.

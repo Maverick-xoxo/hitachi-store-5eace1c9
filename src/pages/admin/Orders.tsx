@@ -1,17 +1,20 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Eye, Download } from 'lucide-react';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { Eye, Download, CalendarIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const statusOptions = [
   { value: 'pending', label: 'Pending Payment' },
@@ -33,13 +36,17 @@ const statusColors: Record<string, 'default' | 'secondary' | 'destructive'> = {
 
 export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [adminNotes, setAdminNotes] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['admin-orders'],
+    queryKey: ['admin-orders', selectedDate],
     queryFn: async () => {
+      const monthStart = startOfMonth(selectedDate).toISOString();
+      const monthEnd = endOfMonth(selectedDate).toISOString();
+      
       // Fetch orders with order_items
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
@@ -47,6 +54,8 @@ export default function AdminOrders() {
           *,
           order_items(*)
         `)
+        .gte('created_at', monthStart)
+        .lte('created_at', monthEnd)
         .order('created_at', { ascending: false });
       
       if (ordersError) throw ordersError;
@@ -115,9 +124,28 @@ export default function AdminOrders() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Orders</h1>
-          <p className="text-muted-foreground">Manage customer orders</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Orders</h1>
+            <p className="text-muted-foreground">Manage customer orders</p>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("justify-start text-left font-normal")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(selectedDate, "MMMM yyyy")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <Card>

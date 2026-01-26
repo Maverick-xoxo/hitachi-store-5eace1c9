@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Layout } from '@/components/layout/Layout';
+import { BankDetails } from '@/components/checkout/BankDetails';
 import { useCartStore } from '@/lib/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -216,6 +217,10 @@ export default function Cart() {
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <BankDetails />
+                
+                <Separator />
+                
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">Rs. {getTotalAmount().toFixed(2)}</span>

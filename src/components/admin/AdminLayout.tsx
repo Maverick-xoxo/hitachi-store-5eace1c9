@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingBag, LayoutDashboard } from 'lucide-react';
+import { Package, ShoppingBag, LayoutDashboard, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/products', icon: ShoppingBag, label: 'Products' },
   { href: '/admin/orders', icon: Package, label: 'Orders' },
+  { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {

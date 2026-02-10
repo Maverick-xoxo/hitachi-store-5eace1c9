@@ -60,7 +60,12 @@ export function Header() {
                       </DropdownMenuItem>
                     </>}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={handleSignOut}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSignOut();
+                    }}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>

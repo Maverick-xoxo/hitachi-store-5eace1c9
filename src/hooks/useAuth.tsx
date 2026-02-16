@@ -52,6 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Sign out when the browser tab is closed
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon(
+        `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/logout`,
+        new Blob([JSON.stringify({})], { type: 'application/json' })
+      );
+      localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_PROJECT_ID + '-auth-token');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
